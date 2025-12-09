@@ -1,10 +1,10 @@
 global_proxy: ""
 
-openai_api_base: ""
+OPENAI_API_BASE: "https://ark.cn-beijing.volces.com/api/v3"
 openai_api_type: ""
 openai_api_version: ""
 openai_api_rpm: ""
-OPENAI_API_MODEL: "gpt-4o-mini"
+OPENAI_API_MODEL: "doubao-1-5-lite-32k-250115"
 max_tokens_rsp: ""
 deployment_id: ""
 claude_api_key: ""

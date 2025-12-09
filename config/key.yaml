@@ -1,5 +1,5 @@
-OPENAI_API_KEY: ""
-OPENAI_API_MODEL: "gpt-4o-mini"
+OPENAI_API_KEY: "578c22ad-624d-4a69-9210-fb3cb3f929d7"
+OPENAI_API_MODEL: "doubao-1-5-lite-32k-250115"
 global_proxy: ""
-OPENAI_API_KEY: ""
+OPENAI_API_KEY: "578c22ad-624d-4a69-9210-fb3cb3f929d7"
 

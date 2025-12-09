@@ -30,6 +30,7 @@ def identify(person, candidate_num=10):
         try:
             contents = execute_prompt(prompt, person.llm,
                                       objective=f"init role...", history=None)
+            print(contents)
             for c in contents.split("\n"):
                 if c:
                     role, description = c.split(": ")

@@ -115,13 +115,17 @@ class OpenAIGPTAPI(BaseGPTAPI, RateLimiter):
     def __init_openai(self, config):
         openai.api_key = config.openai_api_key
         if config.openai_api_base:
-            openai.api_base = config.openai_api_base
+            openai.base_url = config.openai_api_base
+            print(f"OpenAI API base set to: {openai.base_url}")
+        else:
+            print("OpenAI API base not set, using default.")
         if config.openai_api_type:
             openai.api_type = config.openai_api_type
             openai.api_version = config.openai_api_version
         self.rpm = int(config.get("RPM", 10))
 
     async def _achat_completion_stream(self, messages) -> str:
+        
         response = await openai.ChatCompletion.acreate(**self._cons_kwargs(messages), stream=True)
 
         # create variables to collect the stream of chunks

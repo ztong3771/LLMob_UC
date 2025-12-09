@@ -153,7 +153,7 @@ def execute_prompt(prompt, llm, objective, history=None, temperature=0.6):
     response = None
     while response is None:
         try:
-            client = OpenAI()
+            client = OpenAI(api_key="578c22ad-624d-4a69-9210-fb3cb3f929d7", base_url="https://ark.cn-beijing.volces.com/api/v3")
             if history is None:
                 response = client.chat.completions.create(
                     model=llm.model,
