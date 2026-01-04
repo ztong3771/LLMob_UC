@@ -1,9 +1,17 @@
 Ask for motivation given activity area and a plan
 !<INPUT 0>! domain knowledge
-!<INPUT 1>! Example
 <commentblockmarker>###</commentblockmarker>
-Instructions: Complete a description of the persona for a person according to following activity pattern:
+Task:
+Infer the user's typical mobility persona from the activity pattern.
+
+Output rules:
+- The first line MUST be exactly this format:
+  XX(pattern name): ...(typical pattern)
+- Do NOT repeat the activity pattern.
+- Summarize the user's persona in 2–4 concise sentences.
+
+Activity pattern:
 !<INPUT 0>!
 
-Example: !<INPUT 1>!
-
+Example:
+student: you typically travel to and from educational institutions at similar times.
