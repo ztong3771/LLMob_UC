@@ -81,9 +81,11 @@ def identify(person, candidate_num=2):
 def score_from_rating(person, att_hub, e_template, metric, neg_routines=None):
     scores_dict = {}
     r = 0
+    print("att hub length: ", len(att_hub))
+    print("person train routine length: ", len(person.train_routine_list))
     for att in att_hub:
         r += 1
-        for i in range(min(30, len(person.train_routine_list))):
+        for i in range(min(2, len(person.train_routine_list))):
             train_route = person.train_routine_list[
                 i]
             train_route = train_route.split(": ")[-1]
@@ -95,8 +97,6 @@ def score_from_rating(person, att_hub, e_template, metric, neg_routines=None):
                 try:
                     print(contents)
                     match = re.search(r'(Rating)\s*[:：]\s*(\d+)', contents, re.IGNORECASE)
-                    if not match:
-                        raise ValueError("No valid rating found")
                     score = int(match.group(2))
                     print(f"Extracted score: {score}")
                     if att not in scores_dict:
@@ -108,7 +108,7 @@ def score_from_rating(person, att_hub, e_template, metric, neg_routines=None):
                     continue
                 break
         if person.neg_routines is not None:
-            for i in range(len(person.neg_routines)):
+            for i in range(min(2, len(person.neg_routines))):
                 train_route = person.neg_routines[i]
                 train_route = train_route.split(": ")[-1]
                 curr_input = [att, train_route]
@@ -118,8 +118,9 @@ def score_from_rating(person, att_hub, e_template, metric, neg_routines=None):
                     contents = execute_prompt(prompt, person.llm,
                                               objective=f"eval...{r}/{len(att_hub)}")
                     try:
-                        print(contents)
-                        score = int(re.search(r'\d+', contents).group())
+                        match = re.search(r'(Rating)\s*[:：]\s*(\d+)', contents, re.IGNORECASE)
+                        score = int(match.group(2))
+                        print(f"Extracted score: {score}")
                         if att not in scores_dict:
                             scores_dict[att] = [-score]
                         else:

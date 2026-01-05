@@ -46,16 +46,25 @@ def calculate_intervals_to_midnight(times, interval=10):
     midnight = datetime.strptime('00:00:00', '%H:%M:%S')
     intervals = []
     for time in times:
-        if time.strip('.') == "24:00":
-            time = "23:59"
+        t = time.strip('.')
+        if t == "24:00":
+            t = "23:59"
+
         try:
-            current_time = datetime.strptime(time.strip('.'), '%H:%M:%S')
+            if len(t.split(":")) == 3:
+                current_time = datetime.strptime(t, '%H:%M:%S')
+            elif len(t.split(":")) == 2:
+                current_time = datetime.strptime(t, '%H:%M')
+            else:
+                continue   # <<< 核心修复：跳过 "some", "morning" 等
         except:
-            current_time = datetime.strptime(time.strip('.'), '%H:%M')
+            continue       # <<< 再兜一层保险
+
         time_diff_minutes = (current_time - midnight).seconds / 60
         number_of_intervals = time_diff_minutes // interval
         intervals.append(number_of_intervals)
     return intervals
+
 
 
 def clean_traj(traj):
@@ -82,6 +91,7 @@ def obtain_analysis_traj(data):
     traj_ids = []
     traj_lat_lngs = []
     traj_act_ts = []
+    
     for d, traj in data.items():
         traj = data[d]
         if ": : " in traj:
@@ -94,29 +104,31 @@ def obtain_analysis_traj(data):
         times = []
         acts = []
         k = 0
-        while k < len(loc_times):
-            loc_times[k] = loc_times[k].replace(".", "")
-            if k % 2 == 0:
-                try:
-                    clean_loc = loc_times[k]
-                except:
-                    clean_loc = clean_loc.split("#")[0] + str(1)
-                    print(clean_loc)
-                if "Home" in clean_loc or "home" in clean_loc:
-                    k += 2
-                    continue
-                try:
-                    acts.append(cat[loc_times[k].split("#")[0].strip()])
-                except Exception as e:
-                    print(e)
-                    print(traj)
-                    k += 2
-                    continue
-                locs.append(loc_times[k])
+        
+        # ===== 修复开始：同步清洗非法时间 =====
+        clean_locs, clean_acts, clean_times = [], [], []
 
-            else:
-                times.append(loc_times[k].split(" ")[0])
-            k += 1
+        for i in range(len(times)):
+            t = times[i].strip('.')
+            if t == "24:00":
+                t = "23:59"
+            try:
+                if len(t.split(":")) == 3:
+                    datetime.strptime(t, '%H:%M:%S')
+                elif len(t.split(":")) == 2:
+                    datetime.strptime(t, '%H:%M')
+                else:
+                    continue
+            except:
+                continue
+
+            clean_locs.append(locs[i])
+            clean_acts.append(acts[i])
+            clean_times.append(t)
+
+        locs, acts, times = clean_locs, clean_acts, clean_times
+        # ===== 修复结束 =====
+
         times_interval = calculate_intervals_to_midnight(times)
         traj_id, traj_lat_lng, traj_act_t = [], [], []
         for i in range(len(locs)):
@@ -134,9 +146,10 @@ def obtain_analysis_traj(data):
             traj_id.append([loc_id, t])
             traj_act_t.append([acts[i], t])
             traj_lat_lng.append([lat_lng[0], lat_lng[1], t])
-        traj_ids.append(traj_id)
-        traj_act_ts.append(traj_act_t)
-        traj_lat_lngs.append(traj_lat_lng)
+        if len(traj_id) >= 2:     # 至少2个点才有意义
+            traj_ids.append(traj_id)
+            traj_act_ts.append(traj_act_t)
+            traj_lat_lngs.append(traj_lat_lng)
     return traj_ids, traj_lat_lngs, traj_act_ts
 
 
@@ -178,6 +191,8 @@ class Evaluation(object):
         return js
 
     def distance_one_step(self, p1, p2):
+        if len(p1) == 0 or len(p2) == 0:
+            return 1.0
         f = [geodistance(i[2][0], i[2][1], u[index][2][0], u[index][2][1]) for u in p1 for index, i in enumerate(u[1:])]
         r = [geodistance(i[2][0], i[2][1], u[index][2][0], u[index][2][1]) for u in p2 for index, i in enumerate(u[1:])]
         MIN = 0
@@ -191,6 +206,8 @@ class Evaluation(object):
         return JSD
 
     def st_act_jsd(self, p1, p2):
+        if len(p1) == 0 or len(p2) == 0:
+            return 1.0
         st_act_dict = {}
         for u in p1:
             for i in u:
@@ -218,6 +235,8 @@ class Evaluation(object):
         return JSD
 
     def st_loc_jsd(self, p1, p2):
+        if len(p1) == 0 or len(p2) == 0:
+            return 1.0
         st_act_dict = {}
         for u in p1:
             for i in u:
@@ -245,6 +264,8 @@ class Evaluation(object):
         return JSD
 
     def duration_jsd(self, p1, p2):
+        if len(p1) == 0 or len(p2) == 0:
+            return 1.0
         f = duration(p1)
         r = duration(p2)
         MIN = 0
