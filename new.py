@@ -275,8 +275,6 @@ edge_index = torch.tensor([src_nodes, dst_nodes], dtype=torch.long)
 
 print(f"圖構建完成: {num_nodes} 個節點, {edge_index.shape[1]} 條邊")
 
-import numpy as np
-
 # 3. 提取節點特徵矩陣 (Node Features)
 # 我們需要為每個唯一的 Location_ID 聚合特徵
 unique_locs = final_df2.drop_duplicates(subset=['loc_idx']).sort_values('loc_idx')
@@ -328,3 +326,36 @@ model = MobilityGNN(in_dim, hidden_dim, out_dim)
 location_embeddings = model(data.x, data.edge_index)
 
 print(location_embeddings)
+
+import pandas as pd
+
+# 假設 location_embeddings 是模型輸出的 Tensor，形狀為 [num_nodes, out_dim]
+# 1. 脫鉤與轉換 (Detach & Convert)
+# 我們需要將 Tensor 從計算圖中分離 (detach)，移至 CPU，並轉為 NumPy 格式
+embeddings_np = location_embeddings.detach().cpu().numpy()
+
+# 2. 取回原始 Location_ID
+# 記得我們之前用 loc_encoder 將 ID 轉成了 0, 1, 2...
+# 現在我們要用 classes_ 屬性把原本的 ID (例如 '123', '238') 找回來
+original_ids = loc_encoder.classes_
+
+# 3. 建立 DataFrame
+# 將原始 ID 作為 Index，Embedding 向量作為欄位
+embedding_df = pd.DataFrame(embeddings_np, index=original_ids)
+
+# 4. 美化欄位名稱
+# 將欄位命名為 emb_0, emb_1, ... 讓你看起來更專業
+embedding_df.columns = [f'emb_{i}' for i in range(embeddings_np.shape[1])]
+
+# 5. 整理 Index 並重命名
+embedding_df.index.name = 'Location_ID'
+embedding_df.reset_index(inplace=True)
+
+# 6. 輸出 CSV
+output_filename = 'location_embeddings_result.csv'
+embedding_df.to_csv(output_filename, index=False)
+
+print(f"成功導出！檔案已儲存為: {output_filename}")
+print(f"資料維度: {embedding_df.shape}")
+print("前 5 筆預覽：")
+print(embedding_df.head())
