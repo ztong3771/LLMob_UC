@@ -5,6 +5,7 @@ import math
 from datetime import datetime
 from math import sin, cos, asin, sqrt, radians
 import os
+import re
 
 import argparse
 
@@ -98,36 +99,33 @@ def obtain_analysis_traj(data):
             traj = traj.replace(": : ", ": ")
         if " :" in traj:
             traj = traj.replace(", ", "")
-        traj_acts = clean_traj(traj)
-        loc_times = traj_acts.split(" at ")
-        locs = []
-        times = []
-        acts = []
-        k = 0
         
-        # ===== 修复开始：同步清洗非法时间 =====
-        clean_locs, clean_acts, clean_times = [], [], []
+        traj_acts = clean_traj(traj)
 
-        for i in range(len(times)):
-            t = times[i].strip('.')
+        pattern = r'([^#]+#\d+)\s+at\s+(\d{1,2}:\d{2}(?::\d{2})?)'
+        pairs = re.findall(pattern, traj_acts)
+
+        locs, times, acts = [], [], []
+
+        for loc, t in pairs:
+            t = t.strip('.')
             if t == "24:00":
                 t = "23:59"
             try:
                 if len(t.split(":")) == 3:
                     datetime.strptime(t, '%H:%M:%S')
-                elif len(t.split(":")) == 2:
-                    datetime.strptime(t, '%H:%M')
                 else:
-                    continue
+                    datetime.strptime(t, '%H:%M')
             except:
                 continue
 
-            clean_locs.append(locs[i])
-            clean_acts.append(acts[i])
-            clean_times.append(t)
+            try:
+                acts.append(cat[loc.split("#")[0].strip()])
+            except:
+                continue
 
-        locs, acts, times = clean_locs, clean_acts, clean_times
-        # ===== 修复结束 =====
+            locs.append(loc)
+            times.append(t)
 
         times_interval = calculate_intervals_to_midnight(times)
         traj_id, traj_lat_lng, traj_act_t = [], [], []
@@ -146,10 +144,11 @@ def obtain_analysis_traj(data):
             traj_id.append([loc_id, t])
             traj_act_t.append([acts[i], t])
             traj_lat_lng.append([lat_lng[0], lat_lng[1], t])
-        if len(traj_id) >= 2:     # 至少2个点才有意义
-            traj_ids.append(traj_id)
-            traj_act_ts.append(traj_act_t)
-            traj_lat_lngs.append(traj_lat_lng)
+
+        traj_ids.append(traj_id)
+        traj_act_ts.append(traj_act_t)
+        traj_lat_lngs.append(traj_lat_lng)
+
     return traj_ids, traj_lat_lngs, traj_act_ts
 
 
