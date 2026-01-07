@@ -326,3 +326,5 @@ model = MobilityGNN(in_dim, hidden_dim, out_dim)
 
 # 獲取地點嵌入 (無需訓練循環的示例，實際需定義 Loss 進行預訓練)
 location_embeddings = model(data.x, data.edge_index)
+
+print(location_embeddings)
