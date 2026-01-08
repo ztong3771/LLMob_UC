@@ -24,7 +24,7 @@ def mob_gen(person, mode=0, scenario_tag="normal"):
     results = {}
     reals = {}
     his_routine = person.train_routine_list[-person.top_k_routine:]
-    for test_route in person.test_routine_list[:min(2, len(person.test_routine_list))]:
+    for test_route in person.test_routine_list[:min(60, len(person.test_routine_list))]:
         date_ = test_route.split(": ")[0].split(" ")[-1]
         # get motivation
         consecutive_past_days = check_consecutive_dates(his_routine, date_)

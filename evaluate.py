@@ -327,7 +327,7 @@ def eval(dataset='normal', mode=0):
         truth[person_id] = {
             "test": [test_traj_ids, test_lat_lngs, test_act_ts, person]
         }
-
+        print(test_act_ts)
         person_to_test.append(person_id)
 
     # Load generated data
