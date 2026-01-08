@@ -97,12 +97,19 @@ def obtain_analysis_traj(data):
         traj = data[d]
         if ": : " in traj:
             traj = traj.replace(": : ", ": ")
-        if " :" in traj:
-            traj = traj.replace(", ", "")
+
+        traj = traj.replace(" ,", ",").replace(", ", ",")
+
+        traj = re.sub(r'Activities at\s*\d{4}-\d{2}-\d{2}:', '', traj)
+       
+        traj = traj.strip()
+
         
         traj_acts = clean_traj(traj)
 
-        pattern = r'([^#]+#\d+)\s+at\s+(\d{1,2}:\d{2}(?::\d{2})?)'
+
+
+        pattern = r'([^#,]+#\d+)\s+at\s+(\d{1,2}:\d{2}(?::\d{2})?)'
         pairs = re.findall(pattern, traj_acts)
 
         locs, times, acts = [], [], []
@@ -370,6 +377,7 @@ def eval(dataset='normal', mode=0):
         f"STVD: {np.mean(st_loc_jsd_dict[mode]):.4f}"
     )
     print()
+
 
 
 if __name__ == '__main__':
